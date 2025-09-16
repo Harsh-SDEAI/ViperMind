@@ -23,7 +23,9 @@ class UserProgress(Base):
     status = Column(Enum(ProgressStatus), default=ProgressStatus.LOCKED)
     best_score = Column(Float)
     attempts = Column(Integer, default=0)
+    time_spent = Column(Integer, default=0)  # Total time spent in seconds
     last_attempt_at = Column(DateTime(timezone=True))
+    last_accessed = Column(DateTime(timezone=True))  # Last time topic was accessed
     unlocked_at = Column(DateTime(timezone=True))
     learning_velocity = Column(Float)  # AI-calculated learning speed
     struggle_areas = Column(ARRAY(String))  # AI-identified weak concepts

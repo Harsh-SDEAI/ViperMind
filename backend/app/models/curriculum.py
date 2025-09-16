@@ -42,7 +42,7 @@ class Topic(Base):
     # Relationships
     section = relationship("Section", back_populates="topics")
     lesson_content = relationship("LessonContent", back_populates="topic", uselist=False)
-    remedial_content = relationship("RemedialContent", back_populates="topic", uselist=False)
+    topic_remedial_content = relationship("TopicRemedialContent", back_populates="topic", uselist=False)
     user_progress = relationship("UserProgress", back_populates="topic")
 
 class LessonContent(Base):
@@ -59,8 +59,8 @@ class LessonContent(Base):
     # Relationships
     topic = relationship("Topic", back_populates="lesson_content")
 
-class RemedialContent(Base):
-    __tablename__ = "remedial_contents"
+class TopicRemedialContent(Base):
+    __tablename__ = "topic_remedial_contents"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     topic_id = Column(UUID(as_uuid=True), ForeignKey("topics.id"), nullable=False)
@@ -69,4 +69,4 @@ class RemedialContent(Base):
     additional_resources = Column(JSON)  # Links and references
 
     # Relationships
-    topic = relationship("Topic", back_populates="remedial_content")
+    topic = relationship("Topic", back_populates="topic_remedial_content")

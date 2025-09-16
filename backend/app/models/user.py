@@ -28,3 +28,6 @@ class User(Base):
     user_progress = relationship("UserProgress", back_populates="user")
     level_progress = relationship("LevelProgress", back_populates="user")
     learning_analytics = relationship("LearningAnalytics", back_populates="user")
+    remedial_content = relationship("RemedialContent", back_populates="user")
+    review_schedules = relationship("ReviewSchedule", back_populates="user")
+    profile = relationship("UserProfile", back_populates="user", uselist=False)

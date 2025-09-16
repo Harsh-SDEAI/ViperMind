@@ -26,17 +26,23 @@ class Assessment(Base):
     score = Column(Float)
     passed = Column(Boolean)
     attempt_number = Column(Integer, default=1)
-    completed_at = Column(DateTime(timezone=True))
+    time_taken = Column(Integer)  # Total time taken in seconds
+    submitted_at = Column(DateTime(timezone=True))  # When assessment was submitted
+    completed_at = Column(DateTime(timezone=True))  # When assessment was completed (same as submitted_at)
     ai_generated = Column(Boolean, default=True)
-    difficulty_level = Column(Enum(DifficultyLevel), default=DifficultyLevel.MEDIUM)
+    difficulty_level = Column(String, default="medium")  # Changed to String for flexibility
     personalization_factors = Column(JSON)
     ai_feedback = Column(Text)
+    questions_data = Column(JSON)  # Store generated questions data
+    user_answers = Column(JSON)  # Store user's answers
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     user = relationship("User", back_populates="assessments")
     questions = relationship("Question", back_populates="assessment", cascade="all, delete-orphan")
     answers = relationship("Answer", back_populates="assessment", cascade="all, delete-orphan")
+    remedial_content = relationship("RemedialContent", back_populates="assessment")
+    review_schedules = relationship("ReviewSchedule", back_populates="assessment")
 
 class Question(Base):
     __tablename__ = "questions"

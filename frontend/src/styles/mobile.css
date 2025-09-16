@@ -1,0 +1,262 @@
+/* Mobile-specific styles for ViperMind */
+
+/* Safe area support for iOS devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Touch-friendly interactive elements */
+@media (max-width: 768px) {
+  /* Minimum touch target size */
+  button, 
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Larger tap targets for mobile */
+  .mobile-tap-target {
+    padding: 12px 16px;
+  }
+
+  /* Improved text readability on mobile */
+  .mobile-text {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Prevent zoom on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Mobile-optimized form elements */
+  .mobile-form-input {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    font-size: 16px;
+  }
+
+  .mobile-form-input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Mobile navigation improvements */
+  .mobile-nav-item {
+    padding: 16px 20px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.98);
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  /* Card hover effects for mobile */
+  .mobile-card {
+    transition: all 0.2s ease;
+  }
+
+  .mobile-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Improved scrolling */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbars on mobile */
+  .mobile-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile-optimized modals */
+  .mobile-modal {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+    border-radius: 16px;
+  }
+
+  /* Sticky elements positioning */
+  .mobile-sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .mobile-sticky-bottom {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  /* Mobile-friendly animations */
+  .mobile-fade-in {
+    animation: mobileSlideUp 0.3s ease-out;
+  }
+
+  @keyframes mobileSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Improved focus states for accessibility */
+  .mobile-focus:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Mobile-optimized loading states */
+  .mobile-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+
+  /* Responsive text sizes */
+  .mobile-heading-xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    font-weight: 700;
+  }
+
+  .mobile-heading-lg {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+  }
+
+  .mobile-heading-md {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+  }
+
+  .mobile-body {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .mobile-caption {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  /* Mobile-optimized spacing */
+  .mobile-spacing-xs { margin: 0.25rem; }
+  .mobile-spacing-sm { margin: 0.5rem; }
+  .mobile-spacing-md { margin: 1rem; }
+  .mobile-spacing-lg { margin: 1.5rem; }
+  .mobile-spacing-xl { margin: 2rem; }
+
+  /* Mobile grid improvements */
+  .mobile-grid-1 { grid-template-columns: 1fr; }
+  .mobile-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .mobile-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+  /* Mobile-friendly shadows */
+  .mobile-shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .mobile-shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .mobile-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .landscape-compact {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .landscape-hide {
+    display: none;
+  }
+
+  .landscape-minimal {
+    min-height: auto;
+    padding: 8px 16px;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .mobile-crisp {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Dark mode support for mobile */
+@media (prefers-color-scheme: dark) {
+  .mobile-dark-bg {
+    background-color: #1f2937;
+  }
+
+  .mobile-dark-text {
+    color: #f9fafb;
+  }
+
+  .mobile-dark-border {
+    border-color: #374151;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-card,
+  .mobile-nav-item,
+  .mobile-fade-in {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Print styles for mobile */
+@media print {
+  .mobile-no-print {
+    display: none !important;
+  }
+
+  .mobile-print-full-width {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
