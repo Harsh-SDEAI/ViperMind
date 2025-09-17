@@ -6,12 +6,15 @@ from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.auth import get_current_active_user
+from app.core.cache import cache_manager, CacheKeys, CacheTTL
 from app.db.base import get_db
 from app.models.user import User
 from app.models.curriculum import Level, Section, Topic, LessonContent
 from app.models.progress import UserProgress, LevelProgress
 from app.schemas.curriculum import Level as LevelSchema, Section as SectionSchema, Topic as TopicSchema
 from pydantic import BaseModel
+import hashlib
+import json
 
 router = APIRouter()
 
@@ -61,6 +64,12 @@ def get_curriculum_structure(
 ) -> Any:
     """Get the complete curriculum structure without progress information"""
     
+    # Try to get from cache first
+    cache_key = cache_manager._generate_key(CacheKeys.CURRICULUM, "structure")
+    cached_result = cache_manager.get(cache_key)
+    if cached_result:
+        return CurriculumStructure(**cached_result)
+    
     levels = db.query(Level).order_by(Level.order).all()
     
     curriculum_levels = []
@@ -104,7 +113,12 @@ def get_curriculum_structure(
             )
         )
     
-    return CurriculumStructure(levels=curriculum_levels)
+    result = CurriculumStructure(levels=curriculum_levels)
+    
+    # Cache the result
+    cache_manager.set(cache_key, result.dict(), CacheTTL.CURRICULUM_CONTENT)
+    
+    return result
 
 
 @router.get("/progress", response_model=CurriculumWithProgress)
@@ -113,6 +127,12 @@ def get_curriculum_with_progress(
     db: Session = Depends(get_db)
 ) -> Any:
     """Get curriculum structure with user progress information"""
+    
+    # Try to get from cache first
+    cache_key = cache_manager._generate_key(CacheKeys.PROGRESS, f"curriculum:{current_user.id}")
+    cached_result = cache_manager.get(cache_key)
+    if cached_result:
+        return CurriculumWithProgress(**cached_result)
     
     # Get all levels
     levels = db.query(Level).order_by(Level.order).all()
@@ -215,7 +235,12 @@ def get_curriculum_with_progress(
             )
         )
     
-    return CurriculumWithProgress(levels=curriculum_levels)
+    result = CurriculumWithProgress(levels=curriculum_levels)
+    
+    # Cache the result with shorter TTL since it includes user progress
+    cache_manager.set(cache_key, result.dict(), CacheTTL.USER_PROGRESS)
+    
+    return result
 
 
 @router.get("/levels/{level_id}", response_model=LevelSchema)

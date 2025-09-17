@@ -6,8 +6,8 @@ import QuestionDisplay from './QuestionDisplay';
 import Timer from './Timer';
 import ProgressIndicator from './ProgressIndicator';
 import ScoreDisplay from './ScoreDisplay';
-import LoadingSpinner from '../common/LoadingSpinner';
 import MobileAssessmentInterface from './MobileAssessmentInterface';
+import LoadingSpinner from './LoadingSpinner';
 
 interface AssessmentInterfaceProps {
   assessmentType: 'quiz' | 'section_test' | 'level_final';
@@ -35,18 +35,16 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [startTime] = useState(Date.now());
 
-  useEffect(() => {
-    if (targetId) {
-      generateAssessment();
+  const getDefaultQuestionCount = React.useCallback(() => {
+    switch (assessmentType) {
+      case 'quiz': return 4;
+      case 'section_test': return 15;
+      case 'level_final': return 20;
+      default: return 4;
     }
-  }, [targetId, assessmentType]);
+  }, [assessmentType]);
 
-  // Use mobile interface for mobile devices
-  if (isMobile) {
-    return <MobileAssessmentInterface assessmentType={assessmentType} />;
-  }
-
-  const generateAssessment = async () => {
+  const generateAssessment = React.useCallback(async () => {
     try {
       setLoading(true);
       
@@ -72,16 +70,20 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [targetId, assessmentType, isRetake, getDefaultQuestionCount]);
 
-  const getDefaultQuestionCount = () => {
-    switch (assessmentType) {
-      case 'quiz': return 4;
-      case 'section_test': return 15;
-      case 'level_final': return 20;
-      default: return 4;
+  useEffect(() => {
+    if (targetId) {
+      generateAssessment();
     }
-  };
+  }, [targetId, generateAssessment]);
+
+  // Use mobile interface for mobile devices
+  if (isMobile) {
+    return <MobileAssessmentInterface assessmentType={assessmentType} />;
+  }
+
+
 
   const handleAnswerSelect = (questionId: string, answerIndex: number) => {
     setAnswers(prev => ({
@@ -253,7 +255,7 @@ const AssessmentInterface: React.FC<AssessmentInterfaceProps> = ({
           question={currentQuestion}
           questionNumber={currentQuestionIndex + 1}
           selectedAnswer={answers[currentQuestion.id]}
-          onAnswerSelect={(answerIndex) => handleAnswerSelect(currentQuestion.id, answerIndex)}
+          onAnswerSelect={(answerIndex: number) => handleAnswerSelect(currentQuestion.id, answerIndex)}
         />
       </div>
 

@@ -1,0 +1,58 @@
+{
+  "python_basics": {
+    "title": "Introduction to Python",
+    "why_it_matters": "Python is one of the most popular programming languages due to its simplicity and versatility. It's used in web development, data science, AI, and automation.",
+    "key_ideas": [
+      "Python uses indentation to define code blocks",
+      "Variables don't need type declarations",
+      "Python is interpreted, not compiled",
+      "Everything in Python is an object"
+    ],
+    "examples": [
+      {
+        "title": "Hello World",
+        "code": "print('Hello, World!')",
+        "explanation": "This is the traditional first program that displays text."
+      },
+      {
+        "title": "Variables",
+        "code": "name = 'Alice'\nage = 25\nprint(f'Hello, {name}! You are {age} years old.')",
+        "explanation": "Variables store data and can be used in expressions."
+      }
+    ],
+    "pitfalls": [
+      "Forgetting proper indentation",
+      "Mixing tabs and spaces",
+      "Case sensitivity issues"
+    ],
+    "recap": "Python is a beginner-friendly language that emphasizes readability and simplicity."
+  },
+  "variables": {
+    "title": "Variables and Data Types",
+    "why_it_matters": "Variables are fundamental to programming - they store and manipulate data throughout your program.",
+    "key_ideas": [
+      "Variables are containers for data",
+      "Python has dynamic typing",
+      "Variable names should be descriptive",
+      "Multiple assignment is possible"
+    ],
+    "examples": [
+      {
+        "title": "Basic Variables",
+        "code": "x = 10\ny = 'Hello'\nz = True",
+        "explanation": "Different data types can be assigned to variables."
+      },
+      {
+        "title": "Multiple Assignment",
+        "code": "a, b, c = 1, 2, 3\nprint(a, b, c)",
+        "explanation": "Multiple variables can be assigned in one line."
+      }
+    ],
+    "pitfalls": [
+      "Using reserved keywords as variable names",
+      "Starting variable names with numbers",
+      "Overwriting built-in functions"
+    ],
+    "recap": "Variables are essential for storing and manipulating data in Python programs."
+  }
+}

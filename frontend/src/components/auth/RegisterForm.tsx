@@ -44,7 +44,7 @@ const RegisterForm: React.FC = () => {
     }
 
     try {
-      const user = await authAPI.register({
+      await authAPI.register({
         email: formData.email,
         username: formData.username,
         password: formData.password,

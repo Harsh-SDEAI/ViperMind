@@ -1,0 +1,102 @@
+{
+  "python_basics": [
+    {
+      "text": "What is Python?",
+      "options": [
+        "A high-level programming language",
+        "A type of snake",
+        "A web browser",
+        "An operating system"
+      ],
+      "correct_answer": 0,
+      "explanation": "Python is a high-level, interpreted programming language known for its simplicity and readability.",
+      "difficulty": "easy",
+      "concept_tags": [
+        "basics",
+        "introduction"
+      ]
+    },
+    {
+      "text": "Which of the following is used to define code blocks in Python?",
+      "options": [
+        "Curly braces {}",
+        "Parentheses ()",
+        "Indentation",
+        "Square brackets []"
+      ],
+      "correct_answer": 2,
+      "explanation": "Python uses indentation (whitespace) to define code blocks, unlike many other languages that use braces.",
+      "difficulty": "easy",
+      "concept_tags": [
+        "syntax",
+        "indentation"
+      ]
+    },
+    {
+      "text": "What will be the output of: print(type(42))?",
+      "options": [
+        "<class 'str'>",
+        "<class 'int'>",
+        "<class 'float'>",
+        "<class 'number'>"
+      ],
+      "correct_answer": 1,
+      "explanation": "42 is an integer, so type(42) returns <class 'int'>.",
+      "difficulty": "medium",
+      "concept_tags": [
+        "data_types",
+        "built_in_functions"
+      ]
+    },
+    {
+      "text": "Which statement correctly creates a variable in Python?",
+      "options": [
+        "int x = 5;",
+        "var x = 5;",
+        "x = 5",
+        "declare x = 5"
+      ],
+      "correct_answer": 2,
+      "explanation": "Python uses simple assignment without type declarations or semicolons.",
+      "difficulty": "easy",
+      "concept_tags": [
+        "variables",
+        "syntax"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "text": "What is the correct way to assign multiple values to multiple variables?",
+      "options": [
+        "a = 1, b = 2, c = 3",
+        "a, b, c = 1, 2, 3",
+        "a = b = c = 1, 2, 3",
+        "assign a, b, c = 1, 2, 3"
+      ],
+      "correct_answer": 1,
+      "explanation": "Python supports tuple unpacking for multiple assignment: a, b, c = 1, 2, 3",
+      "difficulty": "medium",
+      "concept_tags": [
+        "variables",
+        "multiple_assignment"
+      ]
+    },
+    {
+      "text": "Which of the following is NOT a valid variable name in Python?",
+      "options": [
+        "my_variable",
+        "_private_var",
+        "2nd_variable",
+        "variable2"
+      ],
+      "correct_answer": 2,
+      "explanation": "Variable names cannot start with a number. They must start with a letter or underscore.",
+      "difficulty": "easy",
+      "concept_tags": [
+        "variables",
+        "naming_rules"
+      ]
+    }
+  ]
+}

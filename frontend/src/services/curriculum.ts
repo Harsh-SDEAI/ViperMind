@@ -66,4 +66,5 @@ class CurriculumService {
   }
 }
 
-export default new CurriculumService();
+const curriculumService = new CurriculumService();
+export default curriculumService;

@@ -1,0 +1,22 @@
+{
+  "general": {
+    "hint_text": "Break down the problem into smaller steps. Think about what the question is really asking.",
+    "encouragement": "You're on the right track! Take your time to think through each option.",
+    "strategy": "Read each option carefully and eliminate the ones that are clearly incorrect."
+  },
+  "syntax": {
+    "hint_text": "Remember Python's syntax rules: indentation matters, no semicolons needed, and case sensitivity.",
+    "encouragement": "Syntax questions test your attention to detail. You've got this!",
+    "strategy": "Look for common syntax patterns you've learned."
+  },
+  "variables": {
+    "hint_text": "Think about how variables are created and used in Python. No type declarations needed!",
+    "encouragement": "Variables are fundamental - you're building important skills!",
+    "strategy": "Consider the rules for variable naming and assignment."
+  },
+  "data_types": {
+    "hint_text": "Python has several built-in data types: int, float, str, bool, list, dict, etc.",
+    "encouragement": "Understanding data types is key to effective programming!",
+    "strategy": "Think about what type of data each example represents."
+  }
+}

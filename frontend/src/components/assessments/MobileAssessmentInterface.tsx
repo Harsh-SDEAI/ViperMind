@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useResponsive } from '../../hooks/useResponsive';
 import assessmentService, { Assessment, AssessmentResult, AnswerSubmission } from '../../services/assessments';
@@ -14,7 +14,7 @@ interface MobileAssessmentInterfaceProps {
 const MobileAssessmentInterface: React.FC<MobileAssessmentInterfaceProps> = ({ assessmentType }) => {
   const { targetId } = useParams<{ targetId: string }>();
   const navigate = useNavigate();
-  const { isMobile, orientation } = useResponsive();
+  useResponsive(); // Hook for responsive behavior
   
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -27,13 +27,16 @@ const MobileAssessmentInterface: React.FC<MobileAssessmentInterfaceProps> = ({ a
   const [startTime] = useState(Date.now());
   const [showQuestionOverview, setShowQuestionOverview] = useState(false);
 
-  useEffect(() => {
-    if (targetId) {
-      generateAssessment();
+  const getDefaultQuestionCount = useCallback(() => {
+    switch (assessmentType) {
+      case 'quiz': return 5;
+      case 'section_test': return 10;
+      case 'level_final': return 15;
+      default: return 5;
     }
-  }, [targetId, assessmentType]);
+  }, [assessmentType]);
 
-  const generateAssessment = async () => {
+  const generateAssessment = useCallback(async () => {
     try {
       setLoading(true);
       const assessmentData = await assessmentService.generateAssessment({
@@ -50,16 +53,13 @@ const MobileAssessmentInterface: React.FC<MobileAssessmentInterfaceProps> = ({ a
     } finally {
       setLoading(false);
     }
-  };
+  }, [targetId, assessmentType, getDefaultQuestionCount]);
 
-  const getDefaultQuestionCount = () => {
-    switch (assessmentType) {
-      case 'quiz': return 4;
-      case 'section_test': return 15;
-      case 'level_final': return 20;
-      default: return 4;
+  useEffect(() => {
+    if (targetId) {
+      generateAssessment();
     }
-  };
+  }, [targetId, assessmentType, generateAssessment]);
 
   const handleAnswerSelect = (questionId: string, answerIndex: number) => {
     setAnswers(prev => ({

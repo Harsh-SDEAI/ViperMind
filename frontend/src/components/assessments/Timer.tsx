@@ -48,9 +48,7 @@ const Timer: React.FC<TimerProps> = ({ timeRemaining, onTimeUp, onTimeUpdate }) 
     return 'text-green-600 bg-green-50 border-green-200';
   };
 
-  const getProgressPercentage = (totalTime: number) => {
-    return Math.max(0, (timeRemaining / totalTime) * 100);
-  };
+
 
   return (
     <div className="flex items-center space-x-3">

@@ -140,4 +140,5 @@ class AssessmentService {
   }
 }
 
-export default new AssessmentService();
+const assessmentService = new AssessmentService();
+export default assessmentService;
