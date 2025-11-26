@@ -18,6 +18,9 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
     attempts: 0,
     time_spent: 0
   };
+
+  // Ensure status is always a string
+  const safeStatus = safeProgress.status || 'available';
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
@@ -57,8 +60,8 @@ const ProgressTracker: React.FC<ProgressTrackerProps> = ({
     <div className="bg-white border rounded-lg p-4 min-w-64">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-medium text-gray-900">Your Progress</h3>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(safeProgress.status)}`}>
-          {getStatusIcon(safeProgress.status)} {safeProgress.status.replace('_', ' ')}
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(safeStatus)}`}>
+          {getStatusIcon(safeStatus)} {safeStatus.replace('_', ' ')}
         </span>
       </div>
 

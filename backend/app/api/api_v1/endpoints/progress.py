@@ -175,6 +175,12 @@ def update_progress(
     unlocks = _check_and_update_unlocks(current_user.id, db)
     level_advancement = _check_level_advancement(current_user.id, db)
     
+    # Invalidate curriculum cache if level advancement occurred
+    if level_advancement.get("can_advance"):
+        from app.core.cache import cache_manager, CacheKeys
+        cache_key = cache_manager._generate_key(CacheKeys.PROGRESS, f"curriculum:{current_user.id}")
+        cache_manager.delete(cache_key)
+    
     db.commit()
     
     return {
@@ -231,6 +237,109 @@ def unlock_content(
         "success": True,
         "message": f"{unlock_request.target_type.title()} unlocked successfully"
     }
+
+
+@router.get("/debug-advancement")
+def debug_level_advancement(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Debug level advancement requirements"""
+    
+    user = current_user
+    current_level_code = user.current_level.value
+    
+    # Get current level
+    level_map = {"beginner": "B", "intermediate": "I", "advanced": "A"}
+    current_level = db.query(Level).filter(Level.code == level_map[current_level_code]).first()
+    
+    if not current_level:
+        return {"error": "Current level not found"}
+    
+    # Check section requirements
+    sections = db.query(Section).filter(Section.level_id == current_level.id).all()
+    section_requirements = []
+    
+    from app.core.progression_config import get_section_average_requirement, get_level_final_requirement
+    
+    required_section_average = get_section_average_requirement()
+    
+    for section in sections:
+        section_average = _calculate_section_average(str(user.id), str(section.id), db)
+        section_requirements.append({
+            "section_name": section.name,
+            "section_code": section.code,
+            "average_score": section_average,
+            "required_score": required_section_average,
+            "meets_requirement": section_average >= required_section_average
+        })
+    
+    # Check level final requirement
+    level_final = db.query(Assessment).filter(
+        Assessment.user_id == user.id,
+        Assessment.type == AssessmentType.LEVEL_FINAL,
+        Assessment.target_id == current_level.id,
+        Assessment.passed == True
+    ).first()
+    
+    required_final_score = get_level_final_requirement()
+    
+    level_final_info = {
+        "attempted": level_final is not None,
+        "passed": level_final.passed if level_final else False,
+        "score": level_final.score if level_final else None,
+        "required_score": required_final_score,
+        "meets_requirement": level_final.passed if level_final else False
+    }
+    
+    # Check if can advance
+    advancement_check = _check_level_advancement(str(user.id), db)
+    
+    return {
+        "user_level": current_level_code,
+        "current_level_name": current_level.name,
+        "section_requirements": section_requirements,
+        "level_final_requirement": level_final_info,
+        "advancement_check": advancement_check,
+        "can_advance": advancement_check.get("can_advance", False),
+        "advancement_reason": advancement_check.get("reason", "Unknown")
+    }
+
+
+@router.get("/config")
+def get_progression_config() -> Any:
+    """Get current progression configuration"""
+    from app.core.progression_config import progression_config
+    
+    return {
+        "thresholds": progression_config.thresholds.dict(),
+        "section_requirements": progression_config.get_section_requirements(),
+        "level_requirements": progression_config.get_level_requirements()
+    }
+
+
+@router.post("/config/update")
+def update_progression_config(
+    config_updates: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """Update progression configuration (admin only for now)"""
+    from app.core.progression_config import progression_config
+    
+    try:
+        # Update the configuration
+        progression_config.update_thresholds(**config_updates)
+        
+        return {
+            "success": True,
+            "message": "Progression configuration updated successfully",
+            "updated_config": progression_config.thresholds.dict()
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to update configuration: {str(e)}"
+        )
 
 
 @router.get("/analytics")
@@ -338,9 +447,11 @@ def _check_level_advancement(user_id: str, db: Session) -> Dict[str, Any]:
     # Check if all sections in current level are completed with required averages
     sections = db.query(Section).filter(Section.level_id == current_level.id).all()
     
+    from app.core.progression_config import get_section_average_requirement
+    
     for section in sections:
         section_average = _calculate_section_average(user_id, str(section.id), db)
-        required_average = 75.0  # 75% average required for section completion
+        required_average = get_section_average_requirement()
         
         if section_average < required_average:
             return {
@@ -424,9 +535,11 @@ def _can_unlock_topic(user_id: str, topic_id: str, db: Session) -> tuple[bool, s
         ).first()
         
         if prev_section:
+            from app.core.progression_config import get_section_average_requirement
             section_average = _calculate_section_average(user_id, str(prev_section.id), db)
-            if section_average < 70.0:  # 70% average required to unlock next section
-                return False, f"Previous section requires 70% average (current: {section_average:.1f}%)"
+            required_average = get_section_average_requirement()
+            if section_average < required_average:
+                return False, f"Previous section requires {required_average}% average (current: {section_average:.1f}%)"
     
     return True, "Can unlock"
 
@@ -449,9 +562,11 @@ def _can_unlock_section(user_id: str, section_id: str, db: Session) -> tuple[boo
     ).first()
     
     if prev_section:
+        from app.core.progression_config import get_section_average_requirement
         section_average = _calculate_section_average(user_id, str(prev_section.id), db)
-        if section_average < 70.0:
-            return False, f"Previous section requires 70% average (current: {section_average:.1f}%)"
+        required_average = get_section_average_requirement()
+        if section_average < required_average:
+            return False, f"Previous section requires {required_average}% average (current: {section_average:.1f}%)"
     
     return True, "Can unlock"
 
@@ -561,12 +676,27 @@ def _calculate_section_average(user_id: str, section_id: str, db: Session) -> fl
     
     progress_records = db.query(UserProgress).filter(
         UserProgress.user_id == user_id,
-        UserProgress.topic_id.in_(topic_ids),
-        UserProgress.best_score.isnot(None)
+        UserProgress.topic_id.in_(topic_ids)
     ).all()
     
     if not progress_records:
         return 0.0
     
-    scores = [p.best_score for p in progress_records if p.best_score is not None]
-    return sum(scores) / len(scores) if scores else 0.0
+    # For section average calculation, we need quiz scores
+    # If a topic is completed but has no quiz score, we can't count it toward section average
+    # This encourages users to take quizzes for all topics
+    scores = [p.best_score for p in progress_records if p.best_score is not None and p.best_score > 0]
+    
+    if not scores:
+        return 0.0
+    
+    # Check if all topics in the section have been attempted (have scores)
+    topics_with_scores = len(scores)
+    total_topics = len(topics)
+    
+    # If not all topics have been attempted with quizzes, return 0
+    # This ensures users must take quizzes for all topics in a section
+    if topics_with_scores < total_topics:
+        return 0.0
+    
+    return sum(scores) / len(scores)

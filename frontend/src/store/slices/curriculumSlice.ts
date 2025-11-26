@@ -120,6 +120,14 @@ const curriculumSlice = createSlice({
     invalidateCache: (state) => {
       state.lastFetched = null;
     },
+    refreshAfterLevelAdvancement: (state) => {
+      // Force refresh by invalidating cache and clearing current data
+      state.lastFetched = null;
+      state.levels = [];
+      state.currentLevel = null;
+      state.currentSection = null;
+      state.currentTopic = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -189,6 +197,7 @@ export const {
   updateTopicProgress,
   clearError,
   invalidateCache,
+  refreshAfterLevelAdvancement,
 } = curriculumSlice.actions;
 
 // Selectors with memoization

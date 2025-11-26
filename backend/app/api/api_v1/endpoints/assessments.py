@@ -294,14 +294,11 @@ def submit_assessment(
     total_questions = len(questions_data)
     score = (correct_count / total_questions) * 100 if total_questions > 0 else 0
     
-    # Determine pass/fail based on assessment type
-    pass_thresholds = {
-        "quiz": 70.0,
-        "section_test": 75.0,
-        "level_final": 80.0
-    }
+    # Determine pass/fail based on assessment type using configurable thresholds
+    from app.core.progression_config import get_pass_threshold
     
-    passed = score >= pass_thresholds.get(assessment.type.value, 70.0)
+    pass_threshold = get_pass_threshold(assessment.type.value)
+    passed = score >= pass_threshold
     
     # Update assessment record
     assessment.score = score
@@ -391,39 +388,69 @@ def submit_assessment(
             user_progress.attempts += 1
             user_progress.last_attempt_at = datetime.utcnow()
             user_progress.last_accessed = datetime.utcnow()
+    
+    # Check for unlocks and level advancement for all passed assessments
+    if passed:
+        unlocks = _check_and_update_unlocks(str(current_user.id), db)
+        level_advancement = _check_level_advancement(str(current_user.id), db)
         
-        # Check for unlocks and level advancement only if passed
-        if passed:
-            unlocks = _check_and_update_unlocks(str(current_user.id), db)
-            level_advancement = _check_level_advancement(str(current_user.id), db)
-            
-            # Update next steps if content was unlocked
-            if unlocks:
-                next_steps["unlocked_content"] = unlocks
-            if level_advancement.get("can_advance"):
-                next_steps["level_advancement"] = level_advancement
+        # Update next steps if content was unlocked
+        if unlocks:
+            next_steps["unlocked_content"] = unlocks
+        if level_advancement.get("can_advance"):
+            next_steps["level_advancement"] = level_advancement
     
     # For section tests and level finals, update level progress
-    elif assessment.type in [AssessmentType.SECTION_TEST, AssessmentType.LEVEL_FINAL]:
+    if assessment.type in [AssessmentType.SECTION_TEST, AssessmentType.LEVEL_FINAL]:
         from app.models.progress import LevelProgress
         
-        # Get or create level progress
-        level_progress = db.query(LevelProgress).filter(
-            LevelProgress.user_id == current_user.id,
-            LevelProgress.level_id == assessment.target_id if assessment.type == AssessmentType.LEVEL_FINAL else None
-        ).first()
+        if assessment.type == AssessmentType.LEVEL_FINAL:
+            # Get or create level progress for level final
+            level_progress = db.query(LevelProgress).filter(
+                LevelProgress.user_id == current_user.id,
+                LevelProgress.level_id == assessment.target_id
+            ).first()
+            
+            if not level_progress:
+                level_progress = LevelProgress(
+                    user_id=current_user.id,
+                    level_id=assessment.target_id,
+                    is_unlocked=True
+                )
+                db.add(level_progress)
+            
+            # Update level final score
+            if level_progress.level_final_score is None or score > level_progress.level_final_score:
+                level_progress.level_final_score = score
+                level_progress.is_completed = passed
+                level_progress.can_advance = passed
         
-        if level_progress:
-            if assessment.type == AssessmentType.SECTION_TEST:
-                # Update section test average (simplified - would need section mapping)
-                if level_progress.section_test_average is None or score > level_progress.section_test_average:
-                    level_progress.section_test_average = score
-            elif assessment.type == AssessmentType.LEVEL_FINAL:
-                # Update level final score
-                if level_progress.level_final_score is None or score > level_progress.level_final_score:
-                    level_progress.level_final_score = score
-                    level_progress.is_completed = passed
-                    level_progress.can_advance = passed
+        elif assessment.type == AssessmentType.SECTION_TEST:
+            # For section tests, we need to find the level from the section
+            section = db.query(Section).filter(Section.id == assessment.target_id).first()
+            if section:
+                level_progress = db.query(LevelProgress).filter(
+                    LevelProgress.user_id == current_user.id,
+                    LevelProgress.level_id == section.level_id
+                ).first()
+                
+                if not level_progress:
+                    level_progress = LevelProgress(
+                        user_id=current_user.id,
+                        level_id=section.level_id,
+                        is_unlocked=True
+                    )
+                    db.add(level_progress)
+                
+                # Update section test scores (store as JSON)
+                if not level_progress.section_scores:
+                    level_progress.section_scores = {}
+                
+                section_scores = level_progress.section_scores or {}
+                section_code = section.code
+                if section_code not in section_scores or score > section_scores[section_code]:
+                    section_scores[section_code] = score
+                    level_progress.section_scores = section_scores
     
     # Add retake information to next steps
     if not passed:
@@ -455,6 +482,12 @@ def submit_assessment(
         except Exception as e:
             print(f"Error checking remedial content: {e}")
             # Don't fail the assessment submission if remedial generation fails
+    
+    # Invalidate curriculum cache if level advancement occurred
+    if passed and next_steps.get("level_advancement", {}).get("can_advance"):
+        from app.core.cache import cache_manager, CacheKeys
+        cache_key = cache_manager._generate_key(CacheKeys.PROGRESS, f"curriculum:{current_user.id}")
+        cache_manager.delete(cache_key)
     
     db.commit()
     
